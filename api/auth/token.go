@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -48,4 +50,14 @@ func TokenValid(r *http.Request) error {
 		Pretty(claims)
 	}
 	return nil
+}
+
+func Pretty(data interface{}) {
+	b, err := json.MarshalIndent(data, "", " ")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	fmt.Println(string(b))
 }
