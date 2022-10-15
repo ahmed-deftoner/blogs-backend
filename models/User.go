@@ -27,6 +27,15 @@ func Verify(hashedpassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedpassword), []byte(password))
 }
 
+func (u *User) BeforeSave() error {
+	hashpassword, err := Hash(u.Password)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hashpassword)
+	return nil
+}
+
 func (u *User) Prepare() {
 	u.Id = 0
 	u.Nickname = html.EscapeString(strings.TrimSpace(u.Nickname))
