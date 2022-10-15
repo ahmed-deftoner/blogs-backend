@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	"html"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -14,6 +16,14 @@ type User struct {
 	Password  string    `gorm:"size:100;not null;" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+}
+
+func (u *User) Prepare() {
+	u.Id = 0
+	u.Nickname = html.EscapeString(strings.TrimSpace(u.Nickname))
+	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
+	u.CreatedAt = time.Now()
+	u.UpdatedAt = time.Now()
 }
 
 func (u *User) SaveUser(db *gorm.DB) (*User, error) {
