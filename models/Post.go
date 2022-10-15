@@ -55,3 +55,20 @@ func (p *Post) SavePost(db *gorm.DB) (*Post, error) {
 	}
 	return p, nil
 }
+
+func (p *Post) FindPosts(db *gorm.DB) (*[]Post, error) {
+	posts := []Post{}
+	err := db.Debug().Model(&Post{}).Limit(100).Find(&posts).Error
+	if err != nil {
+		return &[]Post{}, err
+	}
+	if len(posts) > 0 {
+		for i, _ := range posts {
+			err = db.Debug().Model(&User{}).Where("id = ?", posts[i].AuthorID).Take(&posts[i].Author).Error
+			if err != nil {
+				return &[]Post{}, err
+			}
+		}
+	}
+	return &posts, nil
+}
