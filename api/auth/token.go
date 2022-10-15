@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
@@ -29,4 +31,21 @@ func ExtractToken(r *http.Request) string {
 		return strings.Split(bearertoken, " ")[1]
 	}
 	return ""
+}
+
+func TokenValid(r *http.Request) error {
+	tokenStr := ExtractToken(r)
+	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
+		}
+		return []byte(os.Getenv("API_SECRET")), nil
+	})
+	if err != nil {
+		return err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		Pretty(claims)
+	}
+	return nil
 }
