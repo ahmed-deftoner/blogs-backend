@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"html"
+	"log"
 	"strings"
 	"time"
 
@@ -113,6 +114,30 @@ func (u *User) FindUserById(db *gorm.DB, uid uint32) (*User, error) {
 	}
 	if gorm.IsRecordNotFoundError(err) {
 		return &User{}, errors.New("User not found")
+	}
+	return u, nil
+}
+
+func (u *User) UpdateUser(db *gorm.DB, uid uint32) (*User, error) {
+	err := u.BeforeSave()
+	if err != nil {
+		log.Fatal(err)
+	}
+	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
+		map[string]interface{}{
+			"password":  u.Password,
+			"nickname":  u.Nickname,
+			"email":     u.Email,
+			"update_at": time.Now(),
+		},
+	)
+	if db.Error != nil {
+		return &User{}, db.Error
+	}
+	// This is the display the updated user
+	err = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&u).Error
+	if err != nil {
+		return &User{}, err
 	}
 	return u, nil
 }
