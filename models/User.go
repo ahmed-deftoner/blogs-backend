@@ -23,6 +23,10 @@ func Hash(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
+func Verify(hashedpassword, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedpassword), []byte(password))
+}
+
 func (u *User) Prepare() {
 	u.Id = 0
 	u.Nickname = html.EscapeString(strings.TrimSpace(u.Nickname))
