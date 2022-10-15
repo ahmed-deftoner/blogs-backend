@@ -49,42 +49,44 @@ func (u *User) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "update":
 		if u.Nickname == "" {
-			return errors.New("Nickname required")
+			return errors.New("nickname required")
 		}
 		if u.Email == "" {
 			return errors.New("email required")
 		}
 		if u.Password == "" {
-			return errors.New("Password required")
+			return errors.New("password required")
 		}
 		if err := checkmail.ValidateFormat(u.Email); err != nil {
 			return errors.New("invalid email")
 		}
+		return nil
 	case "login":
 		if u.Email == "" {
 			return errors.New("email required")
 		}
 		if u.Password == "" {
-			return errors.New("Password required")
+			return errors.New("password required")
 		}
 		if err := checkmail.ValidateFormat(u.Email); err != nil {
 			return errors.New("invalid email")
 		}
+		return nil
 	default:
 		if u.Nickname == "" {
-			return errors.New("Nickname required")
+			return errors.New("nickname required")
 		}
 		if u.Email == "" {
 			return errors.New("email required")
 		}
 		if u.Password == "" {
-			return errors.New("Password required")
+			return errors.New("password required")
 		}
 		if err := checkmail.ValidateFormat(u.Email); err != nil {
 			return errors.New("invalid email")
 		}
+		return nil
 	}
-	return nil
 }
 
 func (u *User) SaveUser(db *gorm.DB) (*User, error) {
