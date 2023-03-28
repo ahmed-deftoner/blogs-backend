@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/ahmed-deftoner/blogs-backend/api/auth"
 	"github.com/ahmed-deftoner/blogs-backend/api/models"
 	"github.com/ahmed-deftoner/blogs-backend/api/response"
-	"github.com/ahmed-deftoner/blogs-backend/api/utils/formaterror"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,7 +25,6 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 		response.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-
 	user.Prepare()
 	err = user.Validate("login")
 	if err != nil {
@@ -33,8 +33,7 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	token, err := server.SignIn(user.Email, user.Password)
 	if err != nil {
-		formattedError := formaterror.FormatError(err.Error())
-		response.ERROR(w, http.StatusUnprocessableEntity, formattedError)
+		response.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 	response.JSON(w, http.StatusOK, token)
@@ -53,6 +52,10 @@ func (server *Server) SignIn(email, password string) (string, error) {
 	err = models.Verify(user.Password, password)
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		return "", err
+	}
+	if !user.Confirmed {
+		fmt.Println("email not confirmed")
+		return "", errors.New("email not confirmed")
 	}
 	return auth.CreateToken(user.Id)
 }

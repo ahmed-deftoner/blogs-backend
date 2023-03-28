@@ -17,6 +17,7 @@ type User struct {
 	Nickname  string    `gorm:"size:255;not null;unique" json:"nickname"`
 	Email     string    `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:100;not null;" json:"password"`
+	Confirmed bool      `gorm:"default:false" json:"confirmed"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -42,6 +43,7 @@ func (u *User) Prepare() {
 	u.Id = 0
 	u.Nickname = html.EscapeString(strings.TrimSpace(u.Nickname))
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
+	u.Confirmed = false
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
 }
@@ -129,6 +131,27 @@ func (u *User) UpdateUser(db *gorm.DB, uid uint32) (*User, error) {
 			"nickname":  u.Nickname,
 			"email":     u.Email,
 			"update_at": time.Now(),
+		},
+	)
+	if db.Error != nil {
+		return &User{}, db.Error
+	}
+	// This is the display the updated user
+	err = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&u).Error
+	if err != nil {
+		return &User{}, err
+	}
+	return u, nil
+}
+
+func (u *User) ConfirmUser(db *gorm.DB, uid uint32) (*User, error) {
+	err := u.BeforeSave()
+	if err != nil {
+		log.Fatal(err)
+	}
+	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
+		map[string]interface{}{
+			"confirmed": true,
 		},
 	)
 	if db.Error != nil {
